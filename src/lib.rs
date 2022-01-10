@@ -9,7 +9,7 @@ use crate::tempo::tempo_client::TempoClient;
 use crate::utils::date::format_duration;
 use chrono::NaiveDate;
 use dialoguer::Confirm;
-use log::info;
+use log::{info, warn};
 use num_traits::ToPrimitive;
 use std::collections::HashMap;
 
@@ -77,6 +77,11 @@ pub async fn run(config: Config) {
     let issues = jira_client
         .list_issues_in_sprint(sprint.id, additional_fields.as_ref(), true)
         .await;
+
+    if issues.len() == 0 {
+        warn!("No issue found for the user, exiting.");
+        return;
+    }
 
     info!("Found {} issues for the user", issues.len());
     for issue in issues.iter() {
