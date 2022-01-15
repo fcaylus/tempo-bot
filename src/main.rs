@@ -43,6 +43,14 @@ pub struct Opts {
     #[clap(long)]
     day_duration: Option<i32>,
 
+    /// Increment of a work log (in minutes). Every work lok will be rounded to a multiple of this increment.
+    #[clap(long, default_value = "30")]
+    work_increment: i32,
+
+    /// Minimal duration of a work (in minutes). Any work below this threshold will be skipped.
+    #[clap(long, default_value = "15")]
+    work_min_duration: i32,
+
     /// Dry run mode. If specified, no time will be logged
     #[clap(long)]
     dry_run: bool,
@@ -60,8 +68,6 @@ async fn main() {
     let options: Opts = Opts::parse();
 
     let date = parse_date_from_str(options.date.as_str());
-    let work_increment_minutes = 30;
-    let min_work_increment_minutes = 15;
 
     info!("Jira Host         : {}", options.jira_host);
     info!("Board ID          : {}", options.board_id);
@@ -72,8 +78,8 @@ async fn main() {
     info!("API Key           : *****");
     info!("API Key for Tempo : *****");
     info!("-------------------------");
-    info!("Work increment: {}m", work_increment_minutes);
-    info!("Min work increment: {}m", min_work_increment_minutes);
+    info!("Work increment: {}m", options.work_increment);
+    info!("Min work duration: {}m", options.work_min_duration);
     info!("");
 
     let config = Config {
@@ -90,8 +96,8 @@ async fn main() {
         sprint_prefix: options.sprint_prefix,
         date,
         target_workday_duration_seconds: options.day_duration.map(|x| x * 3600),
-        work_increment_seconds: work_increment_minutes * 60,
-        min_work_increment_seconds: min_work_increment_minutes * 60,
+        work_increment_seconds: options.work_increment * 60,
+        min_work_increment_seconds: options.work_min_duration * 60,
         dry_run: options.dry_run,
         skip_confirmation: options.yes,
     };

@@ -11,6 +11,8 @@ Run it every day using a cron-job or a cloud-function, and don't worry anymore a
 ## Usage
 
 ```
+Log your time on Tempo automatically, based on your current tickets in Jira.
+
 USAGE:
     tempo-bot [OPTIONS] --jira-host <JIRA_HOST> --board-id <BOARD_ID> --sprint-prefix <SPRINT_PREFIX> --date <DATE> --email <EMAIL> --api-key <API_KEY> --tempo-api-key <TEMPO_API_KEY> --account-id <ACCOUNT_ID>
 
@@ -54,9 +56,16 @@ OPTIONS:
     -V, --version
             Print version information
 
+        --work-increment <WORK_INCREMENT>
+            Increment of a work log (in minutes). Every work lok will be rounded to a multiple of
+            this increment [default: 30]
+
+        --work-min-duration <WORK_MIN_DURATION>
+            Minimal duration of a work (in minutes). Any work below this threshold will be skipped
+            [default: 15]
+
     -y, --yes
             Answer 'yes' to all question, thus bypassing any user input
-
 ```
 
 - **Cronjob:** run it every day at 19:00
