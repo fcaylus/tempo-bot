@@ -76,12 +76,4 @@ impl BoardConfiguration {
 
         return None;
     }
-
-    pub fn to_additional_fields_for_issues(&self) -> Option<Vec<String>> {
-        if let Some(field) = &self.estimation_field_name() {
-            return Some([field.clone()].to_vec());
-        }
-
-        return None;
-    }
 }

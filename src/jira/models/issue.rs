@@ -1,12 +1,11 @@
 use crate::jira::models::component::Component;
 use crate::jira::models::epic::Epic;
-use crate::jira::models::priority::{Priority, PriorityLevel};
+use crate::jira::models::priority::Priority;
 use crate::jira::models::resolution::Resolution;
 use crate::jira::models::status::Status;
 use crate::jira::models::time_tracking::TimeTracking;
 use crate::jira::models::user::User;
 use chrono::NaiveDate;
-use rand::{thread_rng, Rng};
 use serde::Deserialize;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -20,6 +19,9 @@ pub struct Issue {
     pub self_: String,
     pub key: String,
     pub fields: IssueFields,
+
+    // Not parsed from the JSON, but added later
+    pub estimation_field_name: Option<String>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -98,46 +100,13 @@ impl Issue {
         self.fields.status.status_category.key == "indeterminate"
     }
 
-    pub fn estimation(&self, estimation_field_name: Option<&str>) -> Option<f64> {
-        if let Some(name) = estimation_field_name {
+    pub fn estimation(&self) -> Option<f64> {
+        if let Some(name) = &self.estimation_field_name {
             if let Some(estimation) = self.fields.additional_fields.get(name) {
                 return estimation.as_f64();
             }
         }
 
         return None;
-    }
-
-    pub fn compute_time_score(
-        &self,
-        estimation_field_name: Option<&str>,
-        user_email: &str,
-        date: &NaiveDate,
-    ) -> f64 {
-        let mut score: f64 = self.estimation(estimation_field_name).unwrap_or(1.0);
-
-        if self.is_assigned_to(user_email) {
-            score *= 2.0;
-        }
-
-        if self.is_in_progress() {
-            score *= 2.0;
-        }
-
-        if self.is_resolved() && self.resolution_date() != Some(*date) {
-            score /= 3.0;
-        }
-
-        match self.fields.priority.level() {
-            PriorityLevel::Highest => score *= 1.5,
-            PriorityLevel::High => score *= 1.2,
-            PriorityLevel::Low => score *= 0.8,
-            _ => (),
-        }
-
-        // Add a bit of randomness
-        score *= thread_rng().gen_range(0.2..=1.2);
-
-        return score;
     }
 }

@@ -2,16 +2,16 @@ mod http;
 mod jira;
 mod tempo;
 pub mod utils;
+mod work_event;
 
 use crate::jira::jira_client::JiraClient;
 use crate::jira::models::issue::Issue;
 use crate::tempo::tempo_client::TempoClient;
 use crate::utils::date::format_duration;
+use crate::work_event::ToWorkEvents;
 use chrono::NaiveDate;
 use dialoguer::Confirm;
 use log::{info, warn};
-use num_traits::ToPrimitive;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -73,9 +73,8 @@ pub async fn run(config: Config) {
 
     info!("Found current sprint: {:#?}", sprint);
 
-    let additional_fields = board_configuration.to_additional_fields_for_issues();
     let issues = jira_client
-        .list_issues_in_sprint(sprint.id, additional_fields.as_ref(), true)
+        .list_issues_in_sprint(sprint.id, estimation_field, true)
         .await;
 
     if issues.len() == 0 {
@@ -111,57 +110,23 @@ pub async fn run(config: Config) {
         return;
     }
 
-    let mut issues_with_time_score = HashMap::<String /* key */, f64 /* score */>::new();
-    for issue in issues.iter() {
-        issues_with_time_score.insert(
-            issue.key.clone(),
-            issue.compute_time_score(
-                estimation_field.as_deref(),
-                config.jira.email.as_str(),
-                &config.date,
-            ),
-        );
-    }
-    let mut issues_sorted = issues.into_iter().collect::<Vec<Issue>>();
-    issues_sorted.sort_by(|a, b| {
-        let a_entry = issues_with_time_score
-            .entry(a.key.clone())
-            .or_default()
-            .clone();
-        let b_entry = issues_with_time_score
-            .entry(b.key.clone())
-            .or_default()
-            .clone();
-        return b_entry.partial_cmp(&a_entry).unwrap();
-    });
-
-    info!("");
-    info!("Ordered issue by score:");
-    for issue in issues_sorted.iter() {
-        info!(
-            "- {} (score: {}): {}",
-            issue.key,
-            issues_with_time_score.entry(issue.key.clone()).or_default(),
-            issue.fields.summary
-        )
-    }
-
-    let times = assign_time_to_issues(
+    let issues_events = issues.to_sorted_events(
         &remaining_time,
         &config.min_work_increment_seconds,
         &config.work_increment_seconds,
-        &issues_sorted,
-        &issues_with_time_score,
+        &config.jira.email,
+        &config.date,
     );
 
     info!("");
-    info!("Issues w/ assigned times :");
-    for issue in issues_sorted.iter() {
+    info!("Issues w/ scores & assigned times :");
+    for issue_event in issues_events.iter() {
         info!(
-            "- {}: {} / time: {}",
-            issue.key,
-            issue.fields.summary,
-            format_duration(times.get(issue.key.as_str()).unwrap())
+            "- {} (score: {:.2}): {} / time: {}",
+            issue_event.key,
+            issue_event.score,
+            issue_event.event.fields.summary,
+            format_duration(&issue_event.duration)
         );
     }
 
@@ -183,51 +148,25 @@ pub async fn run(config: Config) {
 
     info!("Logging your time...");
 
-    for issue in issues_sorted.iter() {
-        let duration = times.get(issue.key.as_str()).unwrap();
-        if *duration == 0 {
+    for issue_event in issues_events.iter() {
+        if issue_event.duration == 0 {
             continue;
         }
 
-        info!("Logging {} for {}", format_duration(duration), issue.key);
+        info!(
+            "Logging {} for {}",
+            format_duration(&issue_event.duration),
+            issue_event.key
+        );
         tempo_client
-            .post_worklog(&config.date, &issue.key, &config.tempo.account_id, duration)
+            .post_worklog(
+                &config.date,
+                &issue_event.key,
+                &config.tempo.account_id,
+                &issue_event.duration,
+            )
             .await;
     }
 
     info!("All logged!");
-}
-
-fn assign_time_to_issues(
-    remaining_time: &i32,
-    min_duration: &i32,
-    increment_duration: &i32,
-    issues: &Vec<Issue>,
-    scores_map: &HashMap<String, f64>,
-) -> HashMap<String /* key */, i32 /* time */> {
-    let mut times = HashMap::<String /* key */, i32 /* time*/>::new();
-    let score_sum = scores_map.values().sum::<f64>();
-
-    let min_duration_float = f64::from(*min_duration);
-    let increment_duration_float = f64::from(*increment_duration);
-
-    for issue in issues {
-        let mut time: f64 =
-            f64::from(*remaining_time) * scores_map.get(issue.key.as_str()).unwrap() / score_sum;
-
-        if time < min_duration_float {
-            time = 0.0;
-        }
-
-        // Round to the specified increment
-        if time % increment_duration_float < increment_duration_float / 2.0 {
-            time -= time % increment_duration_float;
-        } else {
-            time += increment_duration_float - (time % increment_duration_float);
-        }
-
-        times.insert(issue.key.clone(), time.ceil().to_i32().unwrap());
-    }
-
-    return times;
 }

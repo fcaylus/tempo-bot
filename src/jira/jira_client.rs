@@ -53,7 +53,7 @@ impl JiraClient {
     pub async fn list_issues_in_sprint(
         &self,
         sprint_id: i32,
-        additional_fields: Option<&Vec<String>>,
+        estimation_field: Option<String>,
         for_current_user_only: bool,
     ) -> Vec<Issue> {
         let mut fields = vec![
@@ -77,13 +77,11 @@ impl JiraClient {
             "reporter",
         ];
 
-        if let Some(f) = additional_fields {
-            for field in f {
-                fields.push(field.as_str())
-            }
+        if let Some(f) = &estimation_field {
+            fields.push(f.as_str());
         }
 
-        let issues = self
+        let mut issues = self
             .client
             .get::<ListIssuesResponse>(
                 format!(
@@ -98,10 +96,16 @@ impl JiraClient {
 
         if for_current_user_only {
             let email = &self.config.email;
-            return issues
+            issues = issues
                 .into_iter()
                 .filter(|issue| issue.is_assigned_to(email) || issue.was_reported_by(email))
                 .collect();
+        }
+
+        if let Some(f) = &estimation_field {
+            for issue in issues.iter_mut() {
+                issue.estimation_field_name = Some(f.to_string());
+            }
         }
 
         return issues;
