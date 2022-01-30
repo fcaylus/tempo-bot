@@ -65,8 +65,8 @@ impl TempoClient {
         &self,
         date: &NaiveDate,
         issue_key: &str,
-        account_id: &str,
         duration: &i32,
+        description: &str,
     ) {
         let mut payload = HashMap::<String, Value>::new();
         payload.insert("issueKey".to_string(), Value::String(issue_key.to_string()));
@@ -78,10 +78,13 @@ impl TempoClient {
             "startDate".to_string(),
             Value::String(date_to_tempo_format(date)),
         );
-        payload.insert("description".to_string(), Value::String(".".to_string()));
+        payload.insert(
+            "description".to_string(),
+            Value::String(description.to_string()),
+        );
         payload.insert(
             "authorAccountId".to_string(),
-            Value::String(account_id.to_string()),
+            Value::String(self.config.account_id.to_string()),
         );
 
         self.client

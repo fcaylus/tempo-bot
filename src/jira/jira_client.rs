@@ -53,7 +53,7 @@ impl JiraClient {
     pub async fn list_issues_in_sprint(
         &self,
         sprint_id: i32,
-        estimation_field: Option<String>,
+        estimation_field: Option<&String>,
         for_current_user_only: bool,
     ) -> Vec<Issue> {
         let mut fields = vec![

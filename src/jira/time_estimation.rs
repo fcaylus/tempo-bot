@@ -36,6 +36,7 @@ impl Issue {
 }
 
 impl ToWorkEvents<Issue> for Vec<Issue> {
+    // TODO: make sure all the "day_duration" is filled
     fn to_events(
         self,
         day_duration: &i32,
@@ -43,6 +44,7 @@ impl ToWorkEvents<Issue> for Vec<Issue> {
         increment_duration: &i32,
         user_email: &str,
         date: &NaiveDate,
+        _default_issue_key: Option<&String>,
     ) -> WorkEvents<Issue> {
         let mut events = Vec::new();
 
@@ -74,6 +76,7 @@ impl ToWorkEvents<Issue> for Vec<Issue> {
                 time.ceil().to_i32().unwrap(),
                 score.clone(),
                 issue.key.to_string(),
+                "".to_string(),
                 issue,
             ));
         }
