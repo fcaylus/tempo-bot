@@ -31,7 +31,7 @@ impl Issue {
         // Add a bit of randomness
         score *= thread_rng().gen_range(0.2..=1.2);
 
-        return score;
+        score
     }
 }
 
@@ -74,13 +74,13 @@ impl ToWorkEvents<Issue> for Vec<Issue> {
 
             events.push(WorkEvent::new(
                 time.ceil().to_i32().unwrap(),
-                score.clone(),
+                *score,
                 issue.key.to_string(),
                 "".to_string(),
                 issue,
             ));
         }
 
-        return events;
+        events
     }
 }

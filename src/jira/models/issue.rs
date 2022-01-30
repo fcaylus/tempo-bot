@@ -75,7 +75,7 @@ impl Issue {
             return assignee.is(email);
         }
 
-        return false;
+        false
     }
 
     pub fn was_reported_by(&self, email: &str) -> bool {
@@ -93,7 +93,7 @@ impl Issue {
             }
         }
 
-        return None;
+        None
     }
 
     pub fn is_in_progress(&self) -> bool {
@@ -107,6 +107,6 @@ impl Issue {
             }
         }
 
-        return None;
+        None
     }
 }

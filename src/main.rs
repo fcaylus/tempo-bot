@@ -86,7 +86,7 @@ async fn main() {
     let date = parse_date_from_str(options.date.as_str());
     let project_prefixes: Vec<String> = options
         .project_prefixes
-        .split(",")
+        .split(',')
         .map(|x| x.to_string())
         .collect();
 

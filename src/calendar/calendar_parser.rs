@@ -26,35 +26,37 @@ impl CalendarParser {
             calendar = self.parse_from_file();
         }
 
-        return calendar;
+        calendar
     }
 
     fn parse_from_file(&self) -> Option<IcalCalendar> {
         let buf = BufReader::new(
             File::open(&self.ics_file_name)
-                .expect(format!("Could not read ICS file from {}", self.ics_file_name).as_str()),
+                .unwrap_or_else(|_| panic!("Could not read ICS file from {}", self.ics_file_name)),
         );
-        let reader = IcalParser::new(buf);
+        let mut reader = IcalParser::new(buf);
 
-        for line in reader {
+        if let Some(line) = reader.next() {
             return Some(line.unwrap());
         }
-        return None;
+
+        None
     }
 
     async fn parse_from_url(&self) -> Option<IcalCalendar> {
         let buf = get(&self.ics_file_name)
             .await
-            .expect(format!("Could not download ICS file from {}", self.ics_file_name).as_str())
+            .unwrap_or_else(|_| panic!("Could not download ICS file from {}", self.ics_file_name))
             .bytes()
             .await
             .unwrap()
             .reader();
-        let reader = IcalParser::new(buf);
+        let mut reader = IcalParser::new(buf);
 
-        for line in reader {
+        if let Some(line) = reader.next() {
             return Some(line.unwrap());
         }
-        return None;
+
+        None
     }
 }

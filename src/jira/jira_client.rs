@@ -46,8 +46,7 @@ impl JiraClient {
         self.list_active_sprints(board_id)
             .await
             .into_iter()
-            .filter(|sprint| sprint.name.starts_with(prefix))
-            .nth(0)
+            .find(|sprint| sprint.name.starts_with(prefix))
     }
 
     pub async fn list_issues_in_sprint(
@@ -108,6 +107,6 @@ impl JiraClient {
             }
         }
 
-        return issues;
+        issues
     }
 }

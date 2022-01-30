@@ -13,7 +13,7 @@ pub trait FromIcal<T> {
     fn from_icalendar(
         calendar: &IcalCalendar,
         date: &NaiveDate,
-        project_prefixes: &Vec<String>,
+        project_prefixes: &[String],
         remove_overlaps: bool,
     ) -> T;
 }
@@ -22,7 +22,7 @@ impl FromIcal<Vec<Meeting>> for Vec<Meeting> {
     fn from_icalendar(
         calendar: &IcalCalendar,
         date: &NaiveDate,
-        project_prefixes: &Vec<String>,
+        project_prefixes: &[String],
         remove_overlaps: bool,
     ) -> Vec<Meeting> {
         let issues_regexes: Vec<Regex> = project_prefixes
@@ -48,7 +48,7 @@ impl FromIcal<Vec<Meeting>> for Vec<Meeting> {
                         "DESCRIPTION" => {
                             meeting.description = property.value.as_ref().unwrap().clone()
                         }
-                        "DTEND" => meeting.end_time = parse_ical_date_time(&property),
+                        "DTEND" => meeting.end_time = parse_ical_date_time(property),
                         "DTSTART" | "RRULE" | "RDATE" | "EXRULE" | "EXDATE" => {
                             rrule_properties.push(format!(
                                 "{}:{}",
@@ -57,7 +57,7 @@ impl FromIcal<Vec<Meeting>> for Vec<Meeting> {
                             ));
 
                             match property.name.as_str() {
-                                "DTSTART" => meeting.start_time = parse_ical_date_time(&property),
+                                "DTSTART" => meeting.start_time = parse_ical_date_time(property),
                                 "RRULE" => has_rrule = true,
                                 _ => {}
                             }
@@ -88,10 +88,9 @@ impl FromIcal<Vec<Meeting>> for Vec<Meeting> {
                     .to_i32()
                     .unwrap();
 
-                return Some(meeting);
+                Some(meeting)
             })
-            .filter(|meeting| meeting.is_some())
-            .map(|meeting| meeting.unwrap())
+            .flatten()
             .collect();
 
         if !remove_overlaps {
@@ -100,10 +99,10 @@ impl FromIcal<Vec<Meeting>> for Vec<Meeting> {
 
         // Remove overlapping and duplicates meetings
         let mut filtered_meetings: Vec<Meeting> = Vec::new();
-        while meetings.len() != 0 {
+        while !meetings.is_empty() {
             let meeting1 = meetings.swap_remove(0);
 
-            if meetings.len() == 0 {
+            if meetings.is_empty() {
                 // Adds the last element
                 filtered_meetings.push(meeting1);
                 break;
@@ -169,7 +168,7 @@ impl FromIcal<Vec<Meeting>> for Vec<Meeting> {
             }
         }
 
-        return filtered_meetings;
+        filtered_meetings
     }
 }
 
@@ -183,8 +182,7 @@ impl ToWorkEvents<Meeting> for Vec<Meeting> {
         _date: &NaiveDate,
         default_issue_key: Option<&String>,
     ) -> WorkEvents<Meeting> {
-        return self
-            .into_iter()
+        self.into_iter()
             .map(|meeting| {
                 WorkEvent::new(
                     meeting.duration,
@@ -192,13 +190,13 @@ impl ToWorkEvents<Meeting> for Vec<Meeting> {
                     meeting
                         .tempo_code
                         .clone()
-                        .or_else(|| default_issue_key.map(|x| x.clone()))
-                        .unwrap_or("".to_string()),
+                        .or_else(|| default_issue_key.cloned())
+                        .unwrap_or_default(),
                     meeting.title.to_string(),
                     meeting,
                 )
             })
-            .collect();
+            .collect()
     }
 }
 
@@ -208,7 +206,7 @@ fn parse_ical_date_time(property: &Property) -> NaiveDateTime {
     return NaiveDateTime::parse_from_str(str_date_time.as_str(), "%Y%m%dT%H%M%S").unwrap();
 }
 
-fn check_rrule_on_date(recurrence_rules: &Vec<String>, date: &NaiveDate) -> bool {
+fn check_rrule_on_date(recurrence_rules: &[String], date: &NaiveDate) -> bool {
     let rrule_str = recurrence_rules.join("\n");
     let rrule_set: RRuleSet = rrule_str.parse().unwrap();
 
@@ -220,15 +218,14 @@ fn check_rrule_on_date(recurrence_rules: &Vec<String>, date: &NaiveDate) -> bool
 
     return recurrences_on_date
         .iter()
-        .find(|rec| rec.naive_utc().date() == *date)
-        .is_some();
+        .any(|rec| rec.naive_utc().date() == *date);
 }
 
-fn extract_tempo_code(text: &str, issues_regexes: &Vec<Regex>) -> Option<String> {
+fn extract_tempo_code(text: &str, issues_regexes: &[Regex]) -> Option<String> {
     for regex in issues_regexes {
         if let Some(regex_match) = regex.find(text) {
             return Some(regex_match.as_str().to_string());
         }
     }
-    return None;
+    None
 }

@@ -119,7 +119,7 @@ pub async fn run(config: Config) {
     )
     .await;
 
-    if meetings_events.len() == 0 && issues_events.len() == 0 {
+    if meetings_events.is_empty() && issues_events.is_empty() {
         warn!("No meetings or issues to log for the day, exiting.");
         return;
     }
@@ -157,12 +157,12 @@ pub async fn run(config: Config) {
 // TODO: ignore meetings already logged in tempo
 async fn fetch_meetings_events(config: &Config) -> WorkEvents<Meeting> {
     if let Some(ics_file) = &config.calendar_ics {
-        let parser = CalendarParser::new(&ics_file);
+        let parser = CalendarParser::new(ics_file);
         let calendar = parser.parse().await.unwrap();
         let meetings =
             Vec::<Meeting>::from_icalendar(&calendar, &config.date, &config.project_prefixes, true);
 
-        if meetings.len() == 0 {
+        if meetings.is_empty() {
             info!("No meeting found for the day.");
             return WorkEvents::new();
         }
@@ -191,7 +191,7 @@ async fn fetch_meetings_events(config: &Config) -> WorkEvents<Meeting> {
         return events;
     }
 
-    return WorkEvents::new();
+    WorkEvents::new()
 }
 
 async fn fetch_issues_events(
@@ -211,7 +211,7 @@ async fn fetch_issues_events(
         .list_issues_in_sprint(sprint.id, estimation_field, true)
         .await;
 
-    if issues.len() == 0 {
+    if issues.is_empty() {
         info!("No issue found for the user.");
         return WorkEvents::new();
     }
@@ -238,5 +238,5 @@ async fn fetch_issues_events(
         }
     }
 
-    return issues_events;
+    issues_events
 }

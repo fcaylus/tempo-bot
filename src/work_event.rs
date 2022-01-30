@@ -46,19 +46,19 @@ pub trait ToWorkEvents<T> {
             default_issue_key,
         );
         events.sort_by(|a, b| b.duration.cmp(&a.duration));
-        return events;
+        events
     }
 }
 
 impl<T> WorkEvent<T> {
     pub fn new(duration: i32, score: f64, key: String, description: String, event: T) -> Self {
-        return Self {
+        Self {
             duration,
             score,
             key,
             description,
             event,
-        };
+        }
     }
 
     pub async fn log_to_tempo(&self, tempo_client: &TempoClient, date: &NaiveDate) {

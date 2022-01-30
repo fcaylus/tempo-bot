@@ -74,6 +74,6 @@ impl BoardConfiguration {
             }
         }
 
-        return None;
+        None
     }
 }
