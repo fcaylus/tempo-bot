@@ -29,7 +29,7 @@ impl Issue {
         }
 
         // Add a bit of randomness
-        score *= thread_rng().gen_range(0.2..=1.2);
+        score *= thread_rng().gen_range(0.7..=1.3);
 
         score
     }
