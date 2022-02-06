@@ -2,6 +2,12 @@
 name = "tempo-bot"
 version = "0.1.0"
 edition = "2021"
+authors = ["Fabien Caylus <fabien.caylus@gmail.com>"]
+description = "Log your time on Tempo automatically, based on your current tickets in Jira."
+homepage = "https://github.com/fcaylus/tempo-bot"
+repository = "https://github.com/fcaylus/tempo-bot"
+license = "MIT/Apache-2.0"
+readme = "README.md"
 
 [dependencies]
 bytes = "1.1.0"
