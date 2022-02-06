@@ -19,7 +19,6 @@ pub trait ToWorkEvents<T> {
     fn to_events(
         self,
         day_duration: &i32,
-        min_duration: &i32,
         increment_duration: &i32,
         user_email: &str,
         date: &NaiveDate,
@@ -29,7 +28,6 @@ pub trait ToWorkEvents<T> {
     fn to_sorted_events(
         self,
         day_duration: &i32,
-        min_duration: &i32,
         increment_duration: &i32,
         user_email: &str,
         date: &NaiveDate,
@@ -40,7 +38,6 @@ pub trait ToWorkEvents<T> {
     {
         let mut events = self.to_events(
             day_duration,
-            min_duration,
             increment_duration,
             user_email,
             date,

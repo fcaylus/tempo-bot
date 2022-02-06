@@ -33,8 +33,6 @@ pub struct Config {
 
     // Every logged duration will be a multiple of this increment
     pub work_increment_seconds: i32,
-    // Any issue below this duration will be ignored
-    pub min_work_increment_seconds: i32,
 
     pub calendar_ics: Option<String>,
     pub meeting_default_issue: Option<String>,
@@ -169,7 +167,6 @@ async fn fetch_meetings_events(config: &Config) -> WorkEvents<Meeting> {
         let events = meetings.to_sorted_events(
             &0,
             &0,
-            &0,
             "",
             &config.date,
             config.meeting_default_issue.as_ref(),
@@ -217,7 +214,6 @@ async fn fetch_issues_events(
 
     let issues_events = issues.to_sorted_events(
         remaining_time,
-        &config.min_work_increment_seconds,
         &config.work_increment_seconds,
         &config.jira.email,
         &config.date,

@@ -36,11 +36,9 @@ impl Issue {
 }
 
 impl ToWorkEvents<Issue> for Vec<Issue> {
-    // TODO: make sure all the "day_duration" is filled
     fn to_events(
         self,
         day_duration: &i32,
-        min_duration: &i32,
         increment_duration: &i32,
         user_email: &str,
         date: &NaiveDate,
@@ -48,33 +46,45 @@ impl ToWorkEvents<Issue> for Vec<Issue> {
     ) -> WorkEvents<Issue> {
         let mut events = Vec::new();
 
-        let scores: Vec<f64> = self
-            .iter()
-            .map(|issue| issue.compute_time_score(user_email, date))
+        // Compute score for each issue and order them by descending order
+        let mut scores: Vec<IssueWithScore> = self
+            .into_iter()
+            .map(|issue| IssueWithScore {
+                score: issue.compute_time_score(user_email, date),
+                issue,
+            })
             .collect();
-        let score_sum: f64 = scores.iter().sum();
+        scores.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
 
-        let min_duration_float = f64::from(*min_duration);
-        let increment_duration_float = f64::from(*increment_duration);
+        let score_sum: f64 = scores.iter().map(|x| x.score).sum();
+        let mut time_sum: i32 = 0;
 
-        for (i, issue) in self.into_iter().enumerate() {
-            let score = scores.get(i).unwrap();
+        let increment_duration_f64 = f64::from(*increment_duration);
+
+        for issue_with_score in scores.into_iter() {
+            let issue = issue_with_score.issue;
+            let score = issue_with_score.score;
             let mut time: f64 = f64::from(*day_duration) * score / score_sum;
 
-            if time < min_duration_float {
-                time = 0.0;
+            // Round to the specified increment
+            if time % increment_duration_f64 < increment_duration_f64 / 2.0 {
+                time -= time % increment_duration_f64;
+            } else {
+                time += increment_duration_f64 - (time % increment_duration_f64);
             }
 
-            // Round to the specified increment
-            if time % increment_duration_float < increment_duration_float / 2.0 {
-                time -= time % increment_duration_float;
-            } else {
-                time += increment_duration_float - (time % increment_duration_float);
+            let mut time_i32 = time.round().to_i32().unwrap();
+
+            // Round to at least 1 increment if there is some remaining time
+            if time_i32 == 0 && time_sum < *day_duration {
+                time_i32 = *increment_duration;
             }
+
+            time_sum += time_i32;
 
             events.push(WorkEvent::new(
-                time.ceil().to_i32().unwrap(),
-                *score,
+                time_i32,
+                score,
                 issue.key.to_string(),
                 "".to_string(),
                 None,
@@ -84,4 +94,9 @@ impl ToWorkEvents<Issue> for Vec<Issue> {
 
         events
     }
+}
+
+struct IssueWithScore {
+    pub issue: Issue,
+    pub score: f64,
 }

@@ -78,10 +78,6 @@ OPTIONS:
             Increment of a work log (in minutes). Every work lok will be rounded to a multiple of
             this increment [default: 30]
 
-        --work-min-duration <WORK_MIN_DURATION>
-            Minimal duration of a work (in minutes). Any work below this threshold will be skipped
-            [default: 15]
-
     -y, --yes
             Answer 'yes' to all question, thus bypassing any user input
 

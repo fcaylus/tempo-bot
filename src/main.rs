@@ -52,10 +52,6 @@ pub struct Opts {
     #[clap(long, default_value = "30")]
     work_increment: i32,
 
-    /// Minimal duration of a work (in minutes). Any work below this threshold will be skipped.
-    #[clap(long, default_value = "15")]
-    work_min_duration: i32,
-
     /// Optional ICS calendar file to parse meeting from. If specified, all meeting of the day will be logged in Tempo.
     /// The issue key will be searched in the title and the description of the events, using the prefixes from --project-prefixes.
     /// Could be either a local file or an url (recommended for real-time calendar updates)
@@ -111,7 +107,6 @@ async fn main() {
         info!("Default meeting issue: {}", display_default_meeting_issue);
         info!("-------------------------");
         info!("Work increment: {}m", options.work_increment);
-        info!("Min work duration: {}m", options.work_min_duration);
         info!("");
     }
 
@@ -131,7 +126,6 @@ async fn main() {
         date,
         target_workday_duration_seconds: options.day_duration.map(|x| x * 3600),
         work_increment_seconds: options.work_increment * 60,
-        min_work_increment_seconds: options.work_min_duration * 60,
         calendar_ics: options.calendar_ics,
         meeting_default_issue: options.meeting_default_issue,
         dry_run: options.dry_run,

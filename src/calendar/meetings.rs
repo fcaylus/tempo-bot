@@ -176,7 +176,6 @@ impl ToWorkEvents<Meeting> for Vec<Meeting> {
     fn to_events(
         self,
         _day_duration: &i32,
-        _min_duration: &i32,
         _increment_duration: &i32,
         _user_email: &str,
         _date: &NaiveDate,
