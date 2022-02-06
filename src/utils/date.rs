@@ -1,5 +1,5 @@
 use chrono;
-use chrono::{NaiveDate, Utc};
+use chrono::{NaiveDate, NaiveTime, Utc};
 
 pub fn parse_date_from_str(date_str: &str) -> NaiveDate {
     let today = Utc::now().date().naive_utc();
@@ -16,6 +16,10 @@ pub fn parse_date_from_str(date_str: &str) -> NaiveDate {
 
 pub fn date_to_tempo_format(date: &NaiveDate) -> String {
     return date.format("%Y-%m-%d").to_string();
+}
+
+pub fn time_to_tempo_format(time: &NaiveTime) -> String {
+    return time.format("%H:%M:%S").to_string();
 }
 
 pub fn format_duration(duration_in_seconds: &i32) -> String {

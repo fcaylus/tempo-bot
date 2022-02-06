@@ -3,9 +3,9 @@ use crate::tempo::models::list_schedules_response::ListSchedulesResponse;
 use crate::tempo::models::list_worklogs_response::ListWorkLogsResponse;
 use crate::tempo::models::schedule::Schedule;
 use crate::tempo::models::worklog::WorkLog;
-use crate::utils::date::date_to_tempo_format;
+use crate::utils::date::{date_to_tempo_format, time_to_tempo_format};
 use crate::TempoHttpConfig;
-use chrono::NaiveDate;
+use chrono::{NaiveDate, NaiveTime};
 use serde_json::{Number, Value};
 use std::collections::HashMap;
 
@@ -64,6 +64,7 @@ impl TempoClient {
     pub async fn post_worklog(
         &self,
         date: &NaiveDate,
+        time: Option<&NaiveTime>,
         issue_key: &str,
         duration: &i32,
         description: &str,
@@ -86,6 +87,13 @@ impl TempoClient {
             "authorAccountId".to_string(),
             Value::String(self.config.account_id.to_string()),
         );
+
+        if let Some(t) = time {
+            payload.insert(
+                "startTime".to_string(),
+                Value::String(time_to_tempo_format(t))
+            );
+        }
 
         self.client
             .post::<WorkLog>("worklogs", Some(&payload))

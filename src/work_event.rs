@@ -1,5 +1,5 @@
 use crate::TempoClient;
-use chrono::NaiveDate;
+use chrono::{NaiveDate, NaiveTime};
 use log::info;
 
 use crate::utils::date::format_duration;
@@ -9,6 +9,7 @@ pub struct WorkEvent<T> {
     pub score: f64,
     pub key: String,
     pub description: String,
+    pub time: Option<NaiveTime>,
     pub event: T,
 }
 
@@ -51,12 +52,20 @@ pub trait ToWorkEvents<T> {
 }
 
 impl<T> WorkEvent<T> {
-    pub fn new(duration: i32, score: f64, key: String, description: String, event: T) -> Self {
+    pub fn new(
+        duration: i32,
+        score: f64,
+        key: String,
+        description: String,
+        time: Option<NaiveTime>,
+        event: T,
+    ) -> Self {
         Self {
             duration,
             score,
             key,
             description,
+            time,
             event,
         }
     }
@@ -73,7 +82,13 @@ impl<T> WorkEvent<T> {
         );
 
         tempo_client
-            .post_worklog(date, &self.key, &self.duration, self.description.as_str())
+            .post_worklog(
+                date,
+                self.time.as_ref(),
+                &self.key,
+                &self.duration,
+                self.description.as_str(),
+            )
             .await;
     }
 }

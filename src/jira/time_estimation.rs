@@ -77,6 +77,7 @@ impl ToWorkEvents<Issue> for Vec<Issue> {
                 *score,
                 issue.key.to_string(),
                 "".to_string(),
+                None,
                 issue,
             ));
         }

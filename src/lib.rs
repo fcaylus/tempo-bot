@@ -142,7 +142,6 @@ pub async fn run(config: Config) {
 
     info!("Logging your time...");
 
-    // TODO: log meetings at their correct date-time
     for event in meetings_events.iter() {
         event.log_to_tempo(&tempo_client, &config.date).await;
     }

@@ -193,6 +193,7 @@ impl ToWorkEvents<Meeting> for Vec<Meeting> {
                         .or_else(|| default_issue_key.cloned())
                         .unwrap_or_default(),
                     meeting.title.to_string(),
+                    Some(meeting.start_time.time()),
                     meeting,
                 )
             })
