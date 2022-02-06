@@ -1,6 +1,6 @@
 [package]
 name = "tempo-bot"
-version = "0.2.0"
+version = "1.0.0"
 edition = "2021"
 authors = ["Fabien Caylus <fabien.caylus@gmail.com>"]
 description = "Log your time on Tempo automatically, based on your current tickets in Jira."
