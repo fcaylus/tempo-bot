@@ -107,22 +107,12 @@ jobs:
           PKG_STAGING="${{ env.CICD_INTERMEDIATES_DIR }}/package"
           ARCHIVE_DIR="${PKG_STAGING}/${PKG_BASENAME}/"
           mkdir -p "${ARCHIVE_DIR}"
-          mkdir -p "${ARCHIVE_DIR}/autocomplete"
           
           # Binary
           cp "${{ steps.strip.outputs.BIN_PATH }}" "$ARCHIVE_DIR"
           
-          # Man page
-          cp 'doc/${{ env.PROJECT_NAME }}.1' "$ARCHIVE_DIR"
-          
           # README, LICENSE and CHANGELOG files
-          cp "README.md" "LICENSE-MIT" "LICENSE-APACHE" "CHANGELOG.md" "$ARCHIVE_DIR"
-          
-          # Autocompletion files
-          cp 'target/${{ matrix.job.target }}/release/build/${{ env.PROJECT_NAME }}'*/out/'${{ env.PROJECT_NAME }}.bash' "$ARCHIVE_DIR/autocomplete/"
-          cp 'target/${{ matrix.job.target }}/release/build/${{ env.PROJECT_NAME }}'*/out/'${{ env.PROJECT_NAME }}.fish' "$ARCHIVE_DIR/autocomplete/"
-          cp 'target/${{ matrix.job.target }}/release/build/${{ env.PROJECT_NAME }}'*/out/'_${{ env.PROJECT_NAME }}.ps1' "$ARCHIVE_DIR/autocomplete/"
-          cp 'contrib/completion/_fd' "$ARCHIVE_DIR/autocomplete/"
+          cp "README.md" "LICENSE-MIT" "LICENSE-APACHE" "$ARCHIVE_DIR"
           
           # base compressed package
           pushd "${PKG_STAGING}/" >/dev/null
