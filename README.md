@@ -1,12 +1,10 @@
 # tempo-bot 🤖
 
-For those who are tired to log their time on Tempo every day, and want to focus on their work, witness the **Tempo Bot 🤖**.
-
 It's a CLI to log your time on Tempo automatically based on:
 - Meetings (from the calendar)
 - Tickets (from Jira)
 
-Run it every day using a cron-job, a cloud-function or a Lambda, and don't worry anymore about reporting !
+Run it every day using a cron-job, a cloud-function or a Lambda.
 
 > **Built with Rust.** Why ? Well, because I'm experimenting with Rust on my free-time 🙃
 
